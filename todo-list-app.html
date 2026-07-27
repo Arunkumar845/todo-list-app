@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Daybook — To-Do List</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --ink:#0f2e2b;
+    --paper:#eef5f2;
+    --panel:#123a36;
+    --line:#1c4b45;
+    --coral:#ff6b4a;
+    --coral-dim:#c94f37;
+    --muted:#7fa79f;
+    --done:#4c7d74;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--ink);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(255,107,74,0.08), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(127,167,159,0.08), transparent 40%);
+    font-family: 'Courier New', monospace;
+    color:var(--paper);
+    display:flex;
+    justify-content:center;
+    padding:48px 20px;
+  }
+  .book{
+    width:100%;
+    max-width:560px;
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:4px;
+    text-transform:uppercase;
+    color:var(--coral);
+    margin-bottom:6px;
+  }
+  h1{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size:42px;
+    font-weight:700;
+    margin:0 0 4px;
+    letter-spacing:-0.5px;
+  }
+  .date{
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:28px;
+    border-bottom:1px dashed var(--line);
+    padding-bottom:20px;
+  }
+  .add-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:24px;
+  }
+  #taskInput{
+    flex:1;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--paper);
+    padding:14px 16px;
+    font-family:inherit;
+    font-size:15px;
+    border-radius:6px;
+    outline:none;
+  }
+  #taskInput::placeholder{color:var(--muted);}
+  #taskInput:focus{border-color:var(--coral);}
+  #addBtn{
+    background:var(--coral);
+    color:var(--ink);
+    border:none;
+    padding:0 22px;
+    font-family:inherit;
+    font-weight:700;
+    font-size:20px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  #addBtn:hover{background:#ff8266;}
+  #addBtn:focus-visible, #taskInput:focus-visible{outline:2px solid var(--coral); outline-offset:2px;}
+
+  .filters{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .filter-btn{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--muted);
+    padding:6px 14px;
+    font-family:inherit;
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    border-radius:20px;
+    cursor:pointer;
+  }
+  .filter-btn.active{
+    background:var(--coral);
+    border-color:var(--coral);
+    color:var(--ink);
+  }
+
+  ul#list{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  li.task{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    padding:14px 4px;
+    border-bottom:1px solid var(--line);
+  }
+  li.task .num{
+    color:var(--muted);
+    font-size:12px;
+    padding-top:3px;
+    min-width:22px;
+  }
+  .checkbox{
+    width:20px;
+    height:20px;
+    border:2px solid var(--muted);
+    border-radius:4px;
+    flex-shrink:0;
+    margin-top:1px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink);
+    font-size:13px;
+  }
+  li.task.done .checkbox{
+    background:var(--done);
+    border-color:var(--done);
+  }
+  .task-text{
+    flex:1;
+    font-size:16px;
+    line-height:1.4;
+    word-break:break-word;
+  }
+  li.task.done .task-text{
+    color:var(--muted);
+    text-decoration:line-through;
+    text-decoration-color:var(--done);
+  }
+  .del-btn{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:18px;
+    cursor:pointer;
+    padding:0 4px;
+  }
+  .del-btn:hover{color:var(--coral);}
+
+  .empty{
+    text-align:center;
+    color:var(--muted);
+    padding:40px 0;
+    font-size:14px;
+  }
+  .stats{
+    margin-top:20px;
+    padding-top:16px;
+    border-top:1px dashed var(--line);
+    display:flex;
+    justify-content:space-between;
+    color:var(--muted);
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+  .stats span b{color:var(--paper);}
+  #clearDone{
+    background:none;
+    border:none;
+    color:var(--coral-dim);
+    font-family:inherit;
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+  #clearDone:hover{color:var(--coral);}
+</style>
+</head>
+<body>
+  <div class="book">
+    <div class="eyebrow">Task 02 · JS Mini Project</div>
+    <h1>Daybook</h1>
+    <div class="date" id="today"></div>
+
+    <div class="add-row">
+      <input type="text" id="taskInput" placeholder="What needs doing today?" maxlength="120" />
+      <button id="addBtn" aria-label="Add task">+</button>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="active">Active</button>
+      <button class="filter-btn" data-filter="done">Done</button>
+    </div>
+
+    <ul id="list"></ul>
+    <div class="empty" id="emptyMsg" style="display:none;">Nothing here yet — add your first task above.</div>
+
+    <div class="stats">
+      <span id="countText"><b>0</b> tasks left</span>
+      <button id="clearDone">Clear completed</button>
+    </div>
+  </div>
+
+<script>
+  // ---- State ----
+  let tasks = []; // { id, text, done }
+  let filter = 'all';
+  let idCounter = 1;
+
+  const listEl = document.getElementById('list');
+  const inputEl = document.getElementById('taskInput');
+  const addBtn = document.getElementById('addBtn');
+  const emptyMsg = document.getElementById('emptyMsg');
+  const countText = document.getElementById('countText');
+  const clearDoneBtn = document.getElementById('clearDone');
+  const filterBtns = document.querySelectorAll('.filter-btn');
+
+  document.getElementById('today').textContent = new Date().toLocaleDateString('en-IN', {
+    weekday:'long', year:'numeric', month:'long', day:'numeric'
+  });
+
+  function addTask(){
+    const text = inputEl.value.trim();
+    if(!text) return;
+    tasks.push({ id: idCounter++, text, done:false });
+    inputEl.value = '';
+    render();
+  }
+
+  function toggleTask(id){
+    const t = tasks.find(t => t.id === id);
+    if(t) t.done = !t.done;
+    render();
+  }
+
+  function deleteTask(id){
+    tasks = tasks.filter(t => t.id !== id);
+    render();
+  }
+
+  function clearCompleted(){
+    tasks = tasks.filter(t => !t.done);
+    render();
+  }
+
+  function setFilter(f){
+    filter = f;
+    filterBtns.forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+    render();
+  }
+
+  function render(){
+    const visible = tasks.filter(t => {
+      if(filter === 'active') return !t.done;
+      if(filter === 'done') return t.done;
+      return true;
+    });
+
+    listEl.innerHTML = '';
+    visible.forEach((t, i) => {
+      const li = document.createElement('li');
+      li.className = 'task' + (t.done ? ' done' : '');
+
+      const num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = String(i+1).padStart(2,'0');
+
+      const box = document.createElement('span');
+      box.className = 'checkbox';
+      box.textContent = t.done ? '✓' : '';
+      box.addEventListener('click', () => toggleTask(t.id));
+
+      const span = document.createElement('span');
+      span.className = 'task-text';
+      span.textContent = t.text;
+
+      const del = document.createElement('button');
+      del.className = 'del-btn';
+      del.textContent = '✕';
+      del.setAttribute('aria-label', 'Delete task');
+      del.addEventListener('click', () => deleteTask(t.id));
+
+      li.appendChild(num);
+      li.appendChild(box);
+      li.appendChild(span);
+      li.appendChild(del);
+      listEl.appendChild(li);
+    });
+
+    emptyMsg.style.display = visible.length === 0 ? 'block' : 'none';
+    const left = tasks.filter(t => !t.done).length;
+    countText.innerHTML = '<b>' + left + '</b> task' + (left===1?'':'s') + ' left';
+  }
+
+  addBtn.addEventListener('click', addTask);
+  inputEl.addEventListener('keydown', e => { if(e.key === 'Enter') addTask(); });
+  clearDoneBtn.addEventListener('click', clearCompleted);
+  filterBtns.forEach(b => b.addEventListener('click', () => setFilter(b.dataset.filter)));
+
+  render();
+</script>
+</body>
+</html>
